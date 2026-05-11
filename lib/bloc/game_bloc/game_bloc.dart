@@ -1,10 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../services/game_service.dart';
+
+import '../../services/game_service.dart';
 import 'game_event.dart';
 import 'game_state.dart';
 
 /// The [GameBloc] manages the business logic for creating a game.
-/// 
+///
 /// Why use BLoC?
 /// 1. **Separation of Concerns**: UI code doesn't need to know about Firestore or data processing.
 /// 2. **Testability**: Business logic can be tested independently of the UI.
@@ -14,8 +15,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   final GameService _gameService;
 
   GameBloc({required GameService gameService})
-      : _gameService = gameService,
-        super(GameInitial()) {
+    : _gameService = gameService,
+      super(GameInitial()) {
     // Register the event handler for SaveGameEvent
     on<SaveGameEvent>(_onSaveGame);
   }

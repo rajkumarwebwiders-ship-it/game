@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "993011491957",
+    "project_id": "game-rk123",
+    "storage_bucket": "game-rk123.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:993011491957:android:b260e8fc9504809957c43c",
+        "android_client_info": {
+          "package_name": "com.example.game"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxU2qYZy8gnxsMSB1rplpiX_C3KBGy9EM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

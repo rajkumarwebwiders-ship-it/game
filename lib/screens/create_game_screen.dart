@@ -1,24 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-
 import '../bloc/game_bloc/game_bloc.dart';
 import '../bloc/game_bloc/game_event.dart';
 import '../bloc/game_bloc/game_state.dart';
 import '../models/game_model.dart';
 import '../services/game_service.dart';
+import '../utils/date_formatter_extension.dart';
 import '../widgets/custom_dropdown_field.dart';
 import '../widgets/custom_snackbar.dart';
 import '../widgets/custom_text_field.dart';
 
 /// [CreateGameScreen] allows a coach to create a new game.
-///
-/// Refactored to eliminate **setState** entirely:
-/// 1. **BLoC**: Handles business logic and asynchronous states (Saving, Success, Failure).
-/// 2. **ValueNotifier**: Handles local ephemeral UI states (Sport and Grade selections).
-///
-/// This approach ensures a highly reactive and performant UI by only rebuilding
-/// the specific widgets that need to change.
 class CreateGameScreen extends StatefulWidget {
   const CreateGameScreen({super.key});
 
@@ -27,21 +19,23 @@ class CreateGameScreen extends StatefulWidget {
 }
 
 class _CreateGameScreenState extends State<CreateGameScreen> {
+  // GlobalKey for the form validation
   final _formKey = GlobalKey<FormState>();
 
-  // Text controllers manage input values and have their own listeners
-  final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _teamAController = TextEditingController();
-  final TextEditingController _teamBController = TextEditingController();
+  // Text controllers for each input field
+  final TextEditingController _dateController = TextEditingController(); // for date picker
+  final TextEditingController _timeController = TextEditingController(); // for time picker
+  final TextEditingController _locationController = TextEditingController(); // for game location
+  final TextEditingController _teamAController = TextEditingController(); // for first team name
+  final TextEditingController _teamBController = TextEditingController(); // for second team name
 
-  // ValueNotifiers for granular local state management without setState
-  final ValueNotifier<String?> _sportNotifier = ValueNotifier<String?>(null);
-  final ValueNotifier<String?> _gradeNotifier = ValueNotifier<String?>(null);
+  // ValueNotifiers for reactive dropdown selections
+  final ValueNotifier<String?> _sportNotifier = ValueNotifier<String?>(null); // for sport selection
+  final ValueNotifier<String?> _gradeNotifier = ValueNotifier<String?>(null); // for grade selection
 
-  final List<String> _sports = ['Camogie', 'Hurling', 'Football', 'Handball'];
-  final List<String> _grades = ['U14', 'U16', 'Minor', 'Junior', 'Senior'];
+  // Data lists for the dropdown menus
+  final List<String> _sports = ['Camogie', 'Hurling', 'Football', 'Handball']; // sports list for Sport dropdown
+  final List<String> _grades = ['U14', 'U16', 'Minor', 'Junior', 'Senior']; // grades list for Grade dropdown
 
   @override
   void dispose() {
@@ -55,6 +49,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     super.dispose();
   }
 
+  // Opens a date picker and updates the _dateController
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -63,11 +58,11 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
       lastDate: DateTime(2101),
     );
     if (picked != null) {
-      // Controllers handle their own internal notification to the TextField
-      _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+      _dateController.text = picked.toGameDate;
     }
   }
 
+  // Opens a time picker and updates the _timeController
   Future<void> _selectTime() async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -78,6 +73,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     }
   }
 
+  // Validates the form and dispatches the SaveGameEvent
   void _onSavePressed(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       final game = GameModel(
@@ -95,6 +91,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     }
   }
 
+  // Clears all form fields and resets notifiers
   void _resetForm() {
     _formKey.currentState!.reset();
     _dateController.clear();
@@ -163,7 +160,6 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          // ValueListenableBuilder for reactive Dropdown without setState
                           ValueListenableBuilder<String?>(
                             valueListenable: _sportNotifier,
                             builder: (context, sport, _) {

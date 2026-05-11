@@ -1,16 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// [GameModel] represents the data structure of a game.
 class GameModel {
-  final String? id;
-  final String date;
-  final String time;
-  final String location;
-  final String sport;
-  final String grade;
-  final String teamA;
-  final String teamB;
-  final String status;
-  final DateTime createdAt;
+  final String? id; // Document ID from Firestore
+  final String date; // Game date (yyyy-MM-dd)
+  final String time; // Game time (HH:mm)
+  final String location; // Venue of the game
+  final String sport; // Type of sport (e.g., Camogie)
+  final String grade; // Player grade (e.g., U14)
+  final String teamA; // First team name
+  final String teamB; // Second team name
+  final String status; // Game status (default: "open")
+  final DateTime createdAt; // Timestamp of when the game was created
 
   GameModel({
     this.id,
@@ -25,6 +26,7 @@ class GameModel {
     required this.createdAt,
   });
 
+  // Converts the model to a map for Firestore storage
   Map<String, dynamic> toMap() {
     return {
       'date': date,
@@ -39,6 +41,7 @@ class GameModel {
     };
   }
 
+  // Creates a model from a Firestore document map
   factory GameModel.fromMap(Map<String, dynamic> map, String documentId) {
     return GameModel(
       id: documentId,

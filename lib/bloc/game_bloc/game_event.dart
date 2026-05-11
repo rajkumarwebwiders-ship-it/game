@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
+
 import '../../models/game_model.dart';
 
-/// Abstract class representing events in the Game BLoC.
-/// Using [Equatable] allows us to compare events efficiently.
+/// [GameEvent] is the base class for all game-related events.
 abstract class GameEvent extends Equatable {
   const GameEvent();
 
@@ -10,9 +10,9 @@ abstract class GameEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Event triggered when the user wants to save a game.
+/// [SaveGameEvent] is triggered when a user submits the game creation form.
 class SaveGameEvent extends GameEvent {
-  final GameModel game;
+  final GameModel game; // The game data to be saved
 
   const SaveGameEvent(this.game);
 

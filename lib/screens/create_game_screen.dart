@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../bloc/game_bloc/game_bloc.dart';
 import '../bloc/game_bloc/game_event.dart';
 import '../bloc/game_bloc/game_state.dart';
 import '../models/game_model.dart';
 import '../services/game_service.dart';
-import '../utils/date_formatter_extension.dart';
+import '../utils/extensions/date_formatter_extension.dart';
+import '../utils/extensions/size_extension.dart'; // Import the new extension
 import '../widgets/custom_dropdown_field.dart';
 import '../widgets/custom_snackbar.dart';
 import '../widgets/custom_text_field.dart';
@@ -105,7 +107,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     final theme = Theme.of(context);
 
     return BlocProvider(
-      create: (context) => GameBloc(gameService: GameService())..add(LoadMetadataEvent()),
+      create: (context) =>
+          GameBloc(gameService: GameService())..add(LoadMetadataEvent()),
       child: Scaffold(
         backgroundColor: theme.colorScheme.background,
         appBar: AppBar(
@@ -117,7 +120,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const GameListScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const GameListScreen(),
+                  ),
                 );
               },
             ),
@@ -135,7 +140,9 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
           child: BlocBuilder<GameBloc, GameState>(
             builder: (context, state) {
               final isSaving = state is GameLoading;
-              final isMetadataLoading = state is GameInitial || (state.sports.isEmpty && state.grades.isEmpty);
+              final isMetadataLoading =
+                  state is GameInitial ||
+                  (state.sports.isEmpty && state.grades.isEmpty);
 
               return Stack(
                 children: [
@@ -153,7 +160,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                             onTap: _selectDate,
                             readOnly: true,
                           ),
-                          const SizedBox(height: 16),
+                          16.height, // Using extension for spacing
                           CustomTextField(
                             controller: _timeController,
                             label: 'Time',
@@ -161,15 +168,14 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                             onTap: _selectTime,
                             readOnly: true,
                           ),
-                          const SizedBox(height: 16),
+                          16.height,
                           CustomTextField(
                             controller: _locationController,
                             label: 'Location',
                             icon: Icons.location_on,
                           ),
-                          const SizedBox(height: 16),
+                          16.height,
 
-                          // Dynamic Sport Dropdown
                           ValueListenableBuilder<String?>(
                             valueListenable: _sportNotifier,
                             builder: (context, sport, _) {
@@ -183,9 +189,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                               );
                             },
                           ),
-                          const SizedBox(height: 16),
+                          16.height,
 
-                          // Dynamic Grade Dropdown
                           ValueListenableBuilder<String?>(
                             valueListenable: _gradeNotifier,
                             builder: (context, grade, _) {
@@ -199,22 +204,24 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                               );
                             },
                           ),
-                          const SizedBox(height: 16),
+                          16.height,
 
                           CustomTextField(
                             controller: _teamAController,
                             label: 'Team A',
                             icon: Icons.group,
                           ),
-                          const SizedBox(height: 16),
+                          16.height,
                           CustomTextField(
                             controller: _teamBController,
                             label: 'Team B',
                             icon: Icons.group,
                           ),
-                          const SizedBox(height: 32),
+                          32.height,
                           ElevatedButton(
-                            onPressed: isSaving ? null : () => _onSavePressed(context),
+                            onPressed: isSaving
+                                ? null
+                                : () => _onSavePressed(context),
                             child: const Text('Save Game'),
                           ),
                         ],

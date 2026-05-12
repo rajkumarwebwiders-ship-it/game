@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../models/game_model.dart';
+import '../utils/extensions/size_extension.dart'; // Import the new extension
 
 /// [GameListItem] is a stylized card widget that displays details of a single game.
 class GameListItem extends StatelessWidget {
@@ -25,7 +27,10 @@ class GameListItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(20),
@@ -47,8 +52,7 @@ class GameListItem extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-
+            12.height, // Using extension for spacing
             // Teams: Team A vs Team B
             Text(
               '${game.teamA} vs ${game.teamB}',
@@ -57,21 +61,21 @@ class GameListItem extends StatelessWidget {
                 color: theme.colorScheme.primary,
               ),
             ),
-            const SizedBox(height: 8),
+            8.height,
 
             // Info: Location and Time
             Row(
               children: [
                 const Icon(Icons.location_on, size: 16, color: Colors.grey),
-                const SizedBox(width: 4),
+                4.width, // Using extension for spacing
                 Text(game.location, style: theme.textTheme.bodyMedium),
                 const Spacer(),
                 const Icon(Icons.access_time, size: 16, color: Colors.grey),
-                const SizedBox(width: 4),
+                4.width,
                 Text(game.time, style: theme.textTheme.bodyMedium),
               ],
             ),
-            const SizedBox(height: 8),
+            8.height,
 
             // Footer: Grade
             Text(

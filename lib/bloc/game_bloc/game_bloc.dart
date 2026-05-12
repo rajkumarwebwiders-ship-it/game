@@ -1,35 +1,68 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../services/game_service.dart';
 import 'game_event.dart';
 import 'game_state.dart';
 
-/// The [GameBloc] manages the business logic for creating a game.
-///
-/// Why use BLoC?
-/// 1. **Separation of Concerns**: UI code doesn't need to know about Firestore or data processing.
-/// 2. **Testability**: Business logic can be tested independently of the UI.
-/// 3. **Predictability**: State transitions are explicit and handled in one place.
-/// 4. **Reusability**: The logic can be reused across different screens or components.
+/// [GameBloc] manages the business logic for creating and listing games.
 class GameBloc extends Bloc<GameEvent, GameState> {
-  final GameService _gameService;
+  final GameService _gameService; // Service for Firestore interactions
+  StreamSubscription? _gamesSubscription; // Subscription to the Firestore stream
 
   GameBloc({required GameService gameService})
-    : _gameService = gameService,
-      super(GameInitial()) {
-    // Register the event handler for SaveGameEvent
+      : _gameService = gameService,
+        super(const GameInitial()) {
     on<SaveGameEvent>(_onSaveGame);
+    on<LoadGamesEvent>(_onLoadGames);
+    on<UpdateGamesEvent>(_onUpdateGames);
+    on<LoadMetadataEvent>(_onLoadMetadata);
   }
 
-  /// Handles the [SaveGameEvent] by interacting with [GameService].
+  // Handles the logic for the SaveGameEvent
   Future<void> _onSaveGame(SaveGameEvent event, Emitter<GameState> emit) async {
-    emit(GameLoading());
+    final sports = state.sports;
+    final grades = state.grades;
+    
+    emit(GameLoading(sports: sports, grades: grades));
     try {
       await _gameService.saveGame(event.game);
-      emit(GameSuccess());
+      emit(GameSuccess(sports: sports, grades: grades));
     } catch (e) {
-      // Emit failure state with the error message
-      emit(GameFailure(e.toString()));
+      emit(GameFailure(e.toString(), sports: sports, grades: grades));
     }
+  }
+
+  // Initializes the stream subscription for real-time game list
+  Future<void> _onLoadGames(LoadGamesEvent event, Emitter<GameState> emit) async {
+    emit(GameLoading(sports: state.sports, grades: state.grades));
+    await _gamesSubscription?.cancel();
+    _gamesSubscription = _gameService.getGamesStream().listen(
+      (games) => add(UpdateGamesEvent(games)),
+      onError: (error) => emit(GameFailure(error.toString(), sports: state.sports, grades: state.grades)),
+    );
+  }
+
+  // Emits the GamesLoaded state with the new list of games
+  void _onUpdateGames(UpdateGamesEvent event, Emitter<GameState> emit) {
+    emit(GamesLoaded(event.games, sports: state.sports, grades: state.grades));
+  }
+
+  // Fetches sports and grades metadata for dropdowns
+  Future<void> _onLoadMetadata(LoadMetadataEvent event, Emitter<GameState> emit) async {
+    try {
+      final results = await Future.wait([
+        _gameService.getSports(),
+        _gameService.getGrades(),
+      ]);
+      emit(MetadataLoaded(sports: results[0], grades: results[1]));
+    } catch (e) {
+      emit(GameFailure('Failed to load dropdown data', sports: state.sports, grades: state.grades));
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _gamesSubscription?.cancel();
+    return super.close();
   }
 }

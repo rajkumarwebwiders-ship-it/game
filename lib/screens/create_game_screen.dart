@@ -9,6 +9,7 @@ import '../utils/date_formatter_extension.dart';
 import '../widgets/custom_dropdown_field.dart';
 import '../widgets/custom_snackbar.dart';
 import '../widgets/custom_text_field.dart';
+import 'game_list_screen.dart';
 
 /// [CreateGameScreen] allows a coach to create a new game.
 class CreateGameScreen extends StatefulWidget {
@@ -23,19 +24,15 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Text controllers for each input field
-  final TextEditingController _dateController = TextEditingController(); // for date picker
-  final TextEditingController _timeController = TextEditingController(); // for time picker
-  final TextEditingController _locationController = TextEditingController(); // for game location
-  final TextEditingController _teamAController = TextEditingController(); // for first team name
-  final TextEditingController _teamBController = TextEditingController(); // for second team name
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _teamAController = TextEditingController();
+  final TextEditingController _teamBController = TextEditingController();
 
   // ValueNotifiers for reactive dropdown selections
-  final ValueNotifier<String?> _sportNotifier = ValueNotifier<String?>(null); // for sport selection
-  final ValueNotifier<String?> _gradeNotifier = ValueNotifier<String?>(null); // for grade selection
-
-  // Data lists for the dropdown menus
-  final List<String> _sports = ['Camogie', 'Hurling', 'Football', 'Handball']; // sports list for Sport dropdown
-  final List<String> _grades = ['U14', 'U16', 'Minor', 'Junior', 'Senior']; // grades list for Grade dropdown
+  final ValueNotifier<String?> _sportNotifier = ValueNotifier<String?>(null);
+  final ValueNotifier<String?> _gradeNotifier = ValueNotifier<String?>(null);
 
   @override
   void dispose() {
@@ -108,25 +105,37 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
     final theme = Theme.of(context);
 
     return BlocProvider(
-      create: (context) => GameBloc(gameService: GameService()),
+      create: (context) => GameBloc(gameService: GameService())..add(LoadMetadataEvent()),
       child: Scaffold(
         backgroundColor: theme.colorScheme.background,
-        appBar: AppBar(title: const Text('Create Game')),
+        appBar: AppBar(
+          title: const Text('Create Game'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.list),
+              tooltip: 'View All Games',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const GameListScreen()),
+                );
+              },
+            ),
+          ],
+        ),
         body: BlocListener<GameBloc, GameState>(
           listener: (context, state) {
             if (state is GameSuccess) {
               CustomSnackBar.showSuccess(context, 'Game saved successfully!');
               _resetForm();
             } else if (state is GameFailure) {
-              CustomSnackBar.showError(
-                context,
-                'Failed to save game: ${state.message}',
-              );
+              CustomSnackBar.showError(context, state.message);
             }
           },
           child: BlocBuilder<GameBloc, GameState>(
             builder: (context, state) {
-              final isLoading = state is GameLoading;
+              final isSaving = state is GameLoading;
+              final isMetadataLoading = state is GameInitial || (state.sports.isEmpty && state.grades.isEmpty);
 
               return Stack(
                 children: [
@@ -160,6 +169,7 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                           ),
                           const SizedBox(height: 16),
 
+                          // Dynamic Sport Dropdown
                           ValueListenableBuilder<String?>(
                             valueListenable: _sportNotifier,
                             builder: (context, sport, _) {
@@ -167,13 +177,15 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                                 value: sport,
                                 label: 'Sport',
                                 icon: Icons.sports,
-                                items: _sports,
+                                items: state.sports,
+                                isLoading: isMetadataLoading,
                                 onChanged: (val) => _sportNotifier.value = val,
                               );
                             },
                           ),
                           const SizedBox(height: 16),
 
+                          // Dynamic Grade Dropdown
                           ValueListenableBuilder<String?>(
                             valueListenable: _gradeNotifier,
                             builder: (context, grade, _) {
@@ -181,7 +193,8 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                                 value: grade,
                                 label: 'Grade',
                                 icon: Icons.grade,
-                                items: _grades,
+                                items: state.grades,
+                                isLoading: isMetadataLoading,
                                 onChanged: (val) => _gradeNotifier.value = val,
                               );
                             },
@@ -201,16 +214,14 @@ class _CreateGameScreenState extends State<CreateGameScreen> {
                           ),
                           const SizedBox(height: 32),
                           ElevatedButton(
-                            onPressed: isLoading
-                                ? null
-                                : () => _onSavePressed(context),
+                            onPressed: isSaving ? null : () => _onSavePressed(context),
                             child: const Text('Save Game'),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  if (isLoading)
+                  if (isSaving)
                     Container(
                       color: Colors.black12,
                       child: const Center(child: CircularProgressIndicator()),

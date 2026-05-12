@@ -1,33 +1,56 @@
 import 'package:equatable/equatable.dart';
+import '../../models/game_model.dart';
 
-/// Abstract class representing states in the Game BLoC.
-/// BLoC states provide a predictable way to update the UI based on 
-/// current application logic (e.g., Loading, Success, Error).
+/// [GameState] is the base class for all UI states in the game flow.
 abstract class GameState extends Equatable {
-  const GameState();
+  final List<String> sports; // list of available sports
+  final List<String> grades; // list of available grades
+
+  const GameState({
+    this.sports = const [],
+    this.grades = const [],
+  });
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [sports, grades];
 }
 
-/// Initial state when the screen is first loaded.
-class GameInitial extends GameState {}
+/// [GameInitial] is the state when the app is first loaded.
+class GameInitial extends GameState {
+  const GameInitial() : super();
+}
 
-/// State emitted while the game is being saved to Firestore.
-/// This allows the UI to show a loading indicator.
-class GameLoading extends GameState {}
+/// [GameLoading] is the state while saving or fetching data.
+class GameLoading extends GameState {
+  const GameLoading({super.sports, super.grades});
+}
 
-/// State emitted when the game has been successfully saved.
-/// This can trigger a success message or navigation.
-class GameSuccess extends GameState {}
+/// [GameSuccess] is the state after a successful save operation.
+class GameSuccess extends GameState {
+  const GameSuccess({super.sports, super.grades});
+}
 
-/// State emitted when an error occurs during the save process.
-/// Contains an error message to be displayed to the user.
+/// [GameFailure] is the state when an error occurs.
 class GameFailure extends GameState {
-  final String message;
+  final String message; // error message to display
 
-  const GameFailure(this.message);
+  const GameFailure(this.message, {super.sports, super.grades});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, ...super.props];
+}
+
+/// [GamesLoaded] is emitted when the list of games is successfully fetched.
+class GamesLoaded extends GameState {
+  final List<GameModel> games; // list of retrieved games
+
+  const GamesLoaded(this.games, {super.sports, super.grades});
+
+  @override
+  List<Object?> get props => [games, ...super.props];
+}
+
+/// [MetadataLoaded] is emitted when sports and grades are loaded for the dropdowns.
+class MetadataLoaded extends GameState {
+  const MetadataLoaded({required super.sports, required super.grades});
 }
